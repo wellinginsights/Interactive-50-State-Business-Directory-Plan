@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>50-State Business Setup Directory</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f9; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        h1 { color: #007bff; text-align: center; margin-bottom: 30px; }
+        #stateFilter { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .state-list { list-style: none; padding: 0; }
+        .state-item { margin-bottom: 10px; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; }
+        .state-header { background-color: #f8f9fa; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .state-details { padding: 15px; background-color: #ffffff; border-top: 1px solid #e0e0e0; display: none; }
+        .details-section h3 { color: #28a745; margin-top: 0; border-bottom: 2px solid #28a745; padding-bottom: 5px; }
+        .details-section a { display: inline-block; margin-top: 8px; color: #007bff; text-decoration: none; font-weight: 600; }
+        .details-section a:hover { text-decoration: underline; }
+        .instruction-box { background-color: #e9f7ef; border-left: 5px solid #28a745; padding: 10px; margin-top: 10px; font-size: 0.9em; }
+        .arrow { transition: transform 0.3s ease; }
+        .open .arrow { transform: rotate(90deg); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🇺🇸 50-State Business Setup Directory</h1>
+    <p>Use this tool to quickly find the official government links for LLC registration and EIN application for any state.</p>
+    <input type="text" id="stateFilter" placeholder="Type to search for a state (e.g., Texas, CA, New York)...">
+
+    <ul class="state-list" id="stateList">
+        </ul>
+</div>
+
+<script>
+    // --- MOCK DATA ---
+    // NOTE: In a real implementation, replace these mock links with the actual government links.
+    const stateData = [
+        { name: "Alabama", abbr: "AL", llcLink: "https://www.alabamallc.gov", einLink: "https://www.irs.gov/al-ein" },
+        { name: "Alaska", abbr: "AK", llcLink: "https://www.alaskallc.com", einLink: "https://www.irs.gov/ak-ein" },
+        { name: "Arizona", abbr: "AZ", llcLink: "https://www.azsoc.gov", einLink: "https://www.irs.gov/az-ein" },
+        { name: "Arkansas", abbr: "AR", llcLink: "https://www.arkansasbusiness.org", einLink: "https://www.irs.gov/ar-ein" },
+        { name: "California", abbr: "CA", llcLink: "https://www.sos.ca.gov/biz", einLink: "https://www.irs.gov/ca-ein" },
+        { name: "Colorado", abbr: "CO", llcLink: "https://www.coloradosos.gov", einLink: "https://www.irs.gov/co-ein" },
+        { name: "Delaware", abbr: "DE", llcLink: "https://corp.delaware.gov", einLink: "https://www.irs.gov/de-ein" },
+        { name: "Florida", abbr: "FL", llcLink: "https://dos.myflorida.com/sunbiz/", einLink: "https://www.irs.gov/fl-ein" },
+        { name: "Georgia", abbr: "GA", llcLink: "https://georgia.gov/business", einLink: "https://www.irs.gov/ga-ein" },
+        { name: "Hawaii", abbr: "HI", llcLink: "https://cca.hawaii.gov/breg", einLink: "https://www.irs.gov/hi-ein" },
+        { name: "Idaho", abbr: "ID", llcLink: "https://sos.idaho.gov/bus", einLink: "https://www.irs.gov/id-ein" },
+        { name: "Illinois", abbr: "IL", llcLink: "https://www.ilsos.gov/departments/business/index.html", einLink: "https://www.irs.gov/il-ein" },
+        { name: "Indiana", abbr: "IN", llcLink: "https://www.in.gov/sos", einLink: "https://www.irs.gov/in-ein" },
+        { name: "Kansas", abbr: "KS", llcLink: "https://www.kssos.org/forms/business", einLink: "https://www.irs.gov/ks-ein" },
+        { name: "Kentucky", abbr: "KY", llcLink: "https://sos.ky.gov/bus", einLink: "https://www.irs.gov/ky-ein" },
+        { name: "Louisiana", abbr: "LA", llcLink: "https://www.sos.la.gov/bus", einLink: "https://www.irs.gov/la-ein" },
+        { name: "Maine", abbr: "ME", llcLink: "https://www.maine.gov/sos/cec", einLink: "https://www.irs.gov/me-ein" },
+        { name: "Maryland", abbr: "MD", llcLink: "https://dat.maryland.gov", einLink: "https://www.irs.gov/md-ein" },
+        { name: "Massachusetts", abbr: "MA", llcLink: "https://www.sec.state.ma.us/cor", einLink: "https://www.irs.gov/ma-ein" },
+        { name: "Michigan", abbr: "MI", llcLink: "https://www.michigan.gov/lara/bcl", einLink: "https://www.irs.gov/mi-ein" },
+        { name: "Minnesota", abbr: "MN", llcLink: "https://www.sos.state.mn.us", einLink: "https://www.irs.gov/mn-ein" },
+        { name: "Mississippi", abbr: "MS", llcLink: "https://www.sos.ms.gov/business/pages/default.aspx", einLink: "https://www.irs.gov/ms-ein" },
+        { name: "Missouri", abbr: "MO", llcLink: "https://www.sos.mo.gov/business", einLink: "https://www.irs.gov/mo-ein" },
+        { name: "Montana", abbr: "MT", llcLink: "https://sosmt.gov/bus", einLink: "https://www.irs.gov/mt-ein" },
+        { name: "Nebraska", abbr: "NE", llcLink: "https://sos.nebraska.gov/business", einLink: "https://www.irs.gov/ne-ein" },
+        { name: "Nevada", abbr: "NV", llcLink: "https://www.nvsos.gov/sos/biz", einLink: "https://www.irs.gov/nv-ein" },
+        { name: "New Hampshire", abbr: "NH", llcLink: "https://www.sos.nh.gov/corporate", einLink: "https://www.irs.gov/nh-ein" },
+        { name: "New Jersey", abbr: "NJ", llcLink: "https://www.state.nj.us/treasury/dcr/bus.shtml", einLink: "https://www.irs.gov/nj-ein" },
+        { name: "New Mexico", abbr: "NM", llcLink: "https://portal.sos.state.nm.us/business", einLink: "https://www.irs.gov/nm-ein" },
+        { name: "New York", abbr: "NY", llcLink: "https://dos.ny.gov/corporation-and-business-entity-information", einLink: "https://www.irs.gov/ny-ein" },
+        { name: "North Carolina", abbr: "NC", llcLink: "https://www.sosnc.gov/divisions/business_registration", einLink: "https://www.irs.gov/nc-ein" },
+        { name: "North Dakota", abbr: "ND", llcLink: "https://sos.nd.gov/business", einLink: "https://www.irs.gov/nd-ein" },
+        { name: "Ohio", abbr: "OH", llcLink: "https://www.ohiosos.gov/business", einLink: "https://www.irs.gov/oh-ein" },
+        { name: "Oklahoma", abbr: "OK", llcLink: "https://www.sos.ok.gov/corp/default.aspx", einLink: "https://www.irs.gov/ok-ein" },
+        { name: "Oregon", abbr: "OR", llcLink: "https://sos.oregon.gov/business", einLink: "https://www.irs.gov/or-ein" },
+        { name: "Pennsylvania", abbr: "PA", llcLink: "https://www.dos.pa.gov/Business", einLink: "https://www.irs.gov/pa-ein" },
+        { name: "Rhode Island", abbr: "RI", llcLink: "https://www.sos.ri.gov/divisions/business-services", einLink: "https://www.irs.gov/ri-ein" },
+        { name: "South Carolina", abbr: "SC", llcLink: "https://sos.sc.gov/online-filings", einLink: "https://www.irs.gov/sc-ein" },
+        { name: "South Dakota", abbr: "SD", llcLink: "https://sdsos.gov/business", einLink: "https://www.irs.gov/sd-ein" },
+        { name: "Tennessee", abbr: "TN", llcLink: "https://sos.tn.gov/business", einLink: "https://www.irs.gov/tn-ein" },
+        { name: "Texas", abbr: "TX", llcLink: "https://www.sos.state.tx.us/corp/formation.shtml", einLink: "https://www.irs.gov/tx-ein" },
+        { name: "Utah", abbr: "UT", llcLink: "https://le.utah.gov/xcode/Title16/Chapter17/16-17-S202.html", einLink: "https://www.irs.gov/ut-ein" },
+        { name: "Vermont", abbr: "VT", llcLink: "https://sos.vermont.gov/corporations/registration", einLink: "https://www.irs.gov/vt-ein" },
+        { name: "Virginia", abbr: "VA", llcLink: "https://scc.virginia.gov/pages/Business-Entity-Formation", einLink: "https://www.irs.gov/va-ein" },
+        { name: "Washington", abbr: "WA", llcLink: "https://www.sos.wa.gov/corps/form_llc.aspx", einLink: "https://www.irs.gov/wa-ein" },
+        { name: "West Virginia", abbr: "WV", llcLink: "https://sos.wv.gov/business/Pages/default.aspx", einLink: "https://www.irs.gov/wv-ein" },
+        { name: "Wisconsin", abbr: "WI", llcLink: "https://www.wdfi.org/apps/corporations/default.aspx", einLink: "https://www.irs.gov/wi-ein" },
+        { name: "Wyoming", abbr: "WY", llcLink: "https://sos.wyo.gov/Forms/Default.aspx?sec=Business", einLink: "https://www.irs.gov/wy-ein" },
+        { name: "District of Columbia", abbr: "DC", llcLink: "https://www.dcra.dc.gov/bbl", einLink: "https://www.irs.gov/dc-ein" }
+    ];
+    // --- END MOCK DATA ---
+
+    const stateListElement = document.getElementById('stateList');
+    const stateFilterInput = document.getElementById('stateFilter');
+
+    // Function to render the list of states
+    function renderStates(data) {
+        stateListElement.innerHTML = ''; // Clear existing list
+        data.forEach(state => {
+            const listItem = document.createElement('li');
+            listItem.className = 'state-item';
+            listItem.setAttribute('data-state-name', state.name.toLowerCase());
+            listItem.setAttribute('data-state-abbr', state.abbr.toLowerCase());
+
+            // Header (Clickable)
+            const header = document.createElement('div');
+            header.className = 'state-header';
+            header.innerHTML = `
+                <span>${state.name} (${state.abbr})</span>
+                <span class="arrow">></span>
+            `;
+            header.onclick = () => toggleDetails(listItem, header);
+            listItem.appendChild(header);
+
+            // Details (Hidden Content)
+            const details = document.createElement('div');
+            details.className = 'state-details';
+            details.innerHTML = `
+                <div class="details-section">
+                    <h3>1. Business Registration (LLC)</h3>
+                    <div class="instruction-box">
+                        Go to this link, search for "Start a New Business" or "Entity Formation," and follow the state's official process.
+                    </div>
+                    <a href="${state.llcLink}" target="_blank">Official ${state.name} LLC Registration Link</a>
+                </div>
+
+                <div class="details-section" style="margin-top: 20px;">
+                    <h3>2. EIN Registration (IRS)</h3>
+                    <div class="instruction-box">
+                        Use this direct link to the IRS website to apply for your Federal Employer Identification Number (EIN).
+                    </div>
+                    <a href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online" target="_blank">Official IRS EIN Registration Link (Same for all states)</a>
+                </div>
+            `;
+            listItem.appendChild(details);
+
+            stateListElement.appendChild(listItem);
+        });
+    }
+
+    // Function to show/hide the details section
+    function toggleDetails(listItem, header) {
+        const details = listItem.querySelector('.state-details');
+        if (details.style.display === 'block') {
+            details.style.display = 'none';
+            header.classList.remove('open');
+        } else {
+            // Close all others first (optional, but good UX)
+            document.querySelectorAll('.state-details').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.state-header').forEach(h => h.classList.remove('open'));
+
+            details.style.display = 'block';
+            header.classList.add('open');
+        }
+    }
+
+    // Function for filtering the list
+    stateFilterInput.addEventListener('keyup', (e) => {
+        const filterText = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.state-item');
+        
+        items.forEach(item => {
+            const name = item.getAttribute('data-state-name');
+            const abbr = item.getAttribute('data-state-abbr');
+            
+            if (name.includes(filterText) || abbr.includes(filterText)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Initialize the directory
+    renderStates(stateData);
+</script>
+
+</body>
+</html>
